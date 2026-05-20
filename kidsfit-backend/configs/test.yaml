@@ -1,0 +1,25 @@
+server:
+  port: 9001
+  mode: debug
+database:
+  host: localhost
+  port: 5432
+  user: kidsfit
+  password: kidsfit_test
+  dbname: kidsfit_users_test
+  sslmode: disable
+  max_open_conns: 20
+  max_idle_conns: 5
+  conn_timeout: 15
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 1
+jwt:
+  secret: kidsfit_test_secret_key_2024
+  access_ttl: 7200
+  refresh_ttl: 604800
+  issuer: kidsfit
+log:
+  level: debug
+  format: console

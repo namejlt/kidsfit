@@ -47,15 +47,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           phone: _phoneController.text.trim(),
           password: _passwordController.text,
           nickname: _nicknameController.text.trim(),
-          isParent: true,
-          childAge: _hasChild ? int.tryParse(_childAgeController.text) : null,
         );
+
+    // 注册成功后，如果有儿童信息则添加儿童
+    if (success && _hasChild) {
+      final childAge = int.tryParse(_childAgeController.text);
+      if (childAge != null) {
+        await ref.read(authStateProvider.notifier).addChild(
+              nickname: '${_nicknameController.text.trim()}的孩子',
+              age: childAge,
+            );
+      }
+    }
 
     if (success && mounted) {
       AppNavigator.goToParentHome(context);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(AppStrings.registerFailed),
           backgroundColor: AppColors.error,
         ),

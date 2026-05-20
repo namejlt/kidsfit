@@ -23,6 +23,12 @@ class AppDimensions {
   /// 按钮高度
   static const double buttonHeight = 48.0;
 
+  /// 次要按钮高度
+  static const double buttonHeightSecondary = 40.0;
+
+  /// 按钮圆角
+  static const double buttonRadius = 12.0;
+
   /// 图标尺寸
   static const double iconSM = 16.0;
   static const double iconMD = 24.0;

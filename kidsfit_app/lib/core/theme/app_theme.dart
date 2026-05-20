@@ -18,12 +18,12 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         tertiary: AppColors.accent,
-        surface: AppColors.white,
+        surface: Colors.white,
         error: AppColors.error,
-        onPrimary: AppColors.white,
-        onSecondary: AppColors.white,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
         onSurface: AppColors.textPrimary,
-        onError: AppColors.white,
+        onError: Colors.white,
       ),
 
       // 脚手架背景色
@@ -33,16 +33,16 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: AppDimensions.fontSizeTitle,
+          fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
         iconTheme: IconThemeData(
           color: AppColors.textPrimary,
-          size: AppDimensions.iconSizeMD,
+          size: AppDimensions.iconMD,
         ),
       ),
 
@@ -52,10 +52,10 @@ class AppTheme {
           elevation: 0,
           minimumSize: const Size.fromHeight(AppDimensions.buttonHeight),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimensions.buttonRadius),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
           ),
           textStyle: const TextStyle(
-            fontSize: AppDimensions.fontSizeNormal,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -64,9 +64,9 @@ class AppTheme {
       // 文本按钮主题
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(AppDimensions.buttonHeightSmall),
+          minimumSize: const Size.fromHeight(40),
           textStyle: const TextStyle(
-            fontSize: AppDimensions.fontSizeNormal,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -75,16 +75,16 @@ class AppTheme {
       // 轮廓按钮主题
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(AppDimensions.buttonHeightSecondary),
+          minimumSize: const Size.fromHeight(44),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
           ),
           side: const BorderSide(
             color: AppColors.primary,
-            width: AppDimensions.borderMedium,
+            width: 1.5,
           ),
           textStyle: const TextStyle(
-            fontSize: AppDimensions.fontSizeNormal,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -93,85 +93,84 @@ class AppTheme {
       // 输入框主题
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.spacingMD,
           vertical: AppDimensions.spacingMD,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.inputRadius),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSM),
           borderSide: const BorderSide(
             color: AppColors.background,
-            width: AppDimensions.borderThin,
+            width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.inputRadius),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSM),
           borderSide: const BorderSide(
             color: AppColors.background,
-            width: AppDimensions.borderThin,
+            width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.inputRadius),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSM),
           borderSide: const BorderSide(
             color: AppColors.primary,
-            width: AppDimensions.borderMedium,
+            width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.inputRadius),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSM),
           borderSide: const BorderSide(
             color: AppColors.error,
-            width: AppDimensions.borderThin,
+            width: 1,
           ),
         ),
         labelStyle: const TextStyle(
           color: AppColors.textSecondary,
-          fontSize: AppDimensions.inputLabelSize,
+          fontSize: 14,
         ),
-        hintStyle: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: AppDimensions.inputTextSize,
+        hintStyle: TextStyle(
+          color: AppColors.textHint,
+          fontSize: 14,
         ),
       ),
 
       // 卡片主题
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: AppDimensions.cardElevation,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
         ),
-        color: AppColors.white,
+        color: Colors.white,
         margin: EdgeInsets.zero,
       ),
 
       // 底部导航栏主题
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
-        height: AppDimensions.bottomNavHeight,
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
         selectedLabelStyle: TextStyle(
-          fontSize: AppDimensions.bottomNavLabelSize,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: AppDimensions.bottomNavLabelSize,
+          fontSize: 12,
           fontWeight: FontWeight.w400,
         ),
       ),
 
       // 对话框主题
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.white,
         titleTextStyle: const TextStyle(
           color: AppColors.textPrimary,
-          fontSize: AppDimensions.fontSizeTitle,
+          fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -179,7 +178,7 @@ class AppTheme {
       // 浮动按钮主题
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
+        foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
@@ -196,52 +195,52 @@ class AppTheme {
       // 分隔线主题
       dividerTheme: const DividerThemeData(
         color: AppColors.background,
-        thickness: AppDimensions.borderThin,
+        thickness: 1,
         space: AppDimensions.spacingMD,
       ),
 
       // 文字主题
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontSize: AppDimensions.fontSizeDisplayXL,
+          fontSize: 36,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
         displayMedium: TextStyle(
-          fontSize: AppDimensions.fontSizeDisplay,
+          fontSize: 28,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
         headlineLarge: TextStyle(
-          fontSize: AppDimensions.fontSizeHeadline,
+          fontSize: 24,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         headlineMedium: TextStyle(
-          fontSize: AppDimensions.fontSizeTitle,
+          fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         titleLarge: TextStyle(
-          fontSize: AppDimensions.fontSizeNormal,
+          fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         titleMedium: TextStyle(
-          fontSize: AppDimensions.fontSizeNormal,
+          fontSize: 16,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
         bodyLarge: TextStyle(
-          fontSize: AppDimensions.fontSizeNormal,
+          fontSize: 16,
           color: AppColors.textPrimary,
         ),
         bodyMedium: TextStyle(
-          fontSize: AppDimensions.fontSizeNormal,
+          fontSize: 14,
           color: AppColors.textSecondary,
         ),
         labelLarge: TextStyle(
-          fontSize: AppDimensions.fontSizeNormal,
+          fontSize: 14,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
@@ -260,10 +259,10 @@ class AppTheme {
         tertiary: AppColors.accent,
         surface: const Color(0xFF1E1E1E),
         error: AppColors.error,
-        onPrimary: AppColors.white,
-        onSecondary: AppColors.white,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
         onSurface: Colors.white,
-        onError: AppColors.white,
+        onError: Colors.white,
       ),
       scaffoldBackgroundColor: const Color(0xFF121212),
     );
@@ -273,8 +272,8 @@ class AppTheme {
   static ThemeData get childTheme {
     return lightTheme.copyWith(
       colorScheme: lightTheme.colorScheme.copyWith(
-        primary: AppColors.childPrimary,
-        secondary: AppColors.childSecondary,
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
       ),
     );
   }
@@ -283,8 +282,8 @@ class AppTheme {
   static ThemeData get parentTheme {
     return lightTheme.copyWith(
       colorScheme: lightTheme.colorScheme.copyWith(
-        primary: AppColors.parentPrimary,
-        secondary: AppColors.parentSecondary,
+        primary: AppColors.secondary,
+        secondary: AppColors.primary,
       ),
     );
   }

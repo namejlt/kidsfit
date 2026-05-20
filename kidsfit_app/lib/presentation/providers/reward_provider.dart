@@ -1,238 +1,367 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/reward.dart';
-import '../../services/storage_service.dart';
+import '../../data/datasources/reward_remote_data_source.dart';
 
-/// 用户勋章列表Provider
-final userBadgesProvider = StateNotifierProvider<UserBadgesNotifier, List<UserBadge>>((ref) {
-  return UserBadgesNotifier();
+/// 激励远程数据源Provider
+final rewardRemoteDataSourceProvider =
+    Provider<RewardRemoteDataSource>((ref) {
+  return RewardRemoteDataSource();
 });
 
-/// 用户勋章Notifier
-class UserBadgesNotifier extends StateNotifier<List<UserBadge>> {
-  UserBadgesNotifier() : super([]);
+/// 激励状态数据类
+class RewardState {
+  /// 所有勋章列表
+  final List<Badge> badges;
 
-  /// 加载用户勋章
-  Future<void> loadUserBadges(String userId) async {
-    try {
-      // TODO: 调用API获取用户勋章
-      await Future.delayed(const Duration(milliseconds: 300));
+  /// 我的勋章列表
+  final List<Badge> myBadges;
 
-      // 模拟数据
-      final badges = [
-        Badge(
-          id: 'badge_1',
-          code: 'first_exercise',
-          name: '初次运动',
-          description: '完成第一次运动',
-          category: BadgeCategory.milestone,
-          points: 10,
-          createdAt: DateTime.now(),
-        ),
-        Badge(
-          id: 'badge_2',
-          code: 'jump_master',
-          name: '跳绳达人',
-          description: '跳绳得分超过80分',
-          category: BadgeCategory.skill,
-          points: 20,
-          createdAt: DateTime.now(),
-        ),
-      ];
+  /// 积分记录列表
+  final List<PointRecord> pointRecords;
 
-      state = badges.map((badge) => UserBadge(
-        id: 'user_badge_${badge.id}',
-        userId: userId,
-        badgeId: badge.id,
-        earnedAt: DateTime.now(),
-        badge: badge,
-        createdAt: DateTime.now(),
-      )).toList();
-    } catch (e) {
-      state = [];
-    }
-  }
+  /// 积分余额
+  final int pointsBalance;
 
-  /// 添加勋章
-  Future<void> addBadge(UserBadge badge) async {
-    state = [...state, badge];
-  }
+  /// 挑战列表
+  final List<Challenge> challenges;
 
-  /// 获取新勋章
-  List<UserBadge> getNewBadges() {
-    return state.where((b) => b.isNew).toList();
-  }
-}
+  /// 家庭排行榜
+  final List<LeaderboardEntry> familyLeaderboard;
 
-/// 用户积分Provider
-final userPointsProvider = StateProvider<int>((ref) => 0);
+  /// 全球排行榜
+  final List<LeaderboardEntry> globalLeaderboard;
 
-/// 积分记录列表Provider
-final pointRecordsProvider =
-    StateNotifierProvider<PointRecordsNotifier, List<PointRecord>>((ref) {
-  return PointRecordsNotifier();
-});
+  /// 是否加载中
+  final bool isLoading;
 
-/// 积分记录Notifier
-class PointRecordsNotifier extends StateNotifier<List<PointRecord>> {
-  PointRecordsNotifier() : super([]);
+  /// 错误消息
+  final String? error;
 
-  /// 加载积分记录
-  Future<void> loadPointRecords(String userId) async {
-    try {
-      // TODO: 调用API获取积分记录
-      state = [];
-    } catch (e) {
-      state = [];
-    }
-  }
+  const RewardState({
+    this.badges = const [],
+    this.myBadges = const [],
+    this.pointRecords = const [],
+    this.pointsBalance = 0,
+    this.challenges = const [],
+    this.familyLeaderboard = const [],
+    this.globalLeaderboard = const [],
+    this.isLoading = false,
+    this.error,
+  });
 
-  /// 添加积分记录
-  Future<void> addPointRecord(PointRecord record) async {
-    state = [record, ...state];
+  RewardState copyWith({
+    List<Badge>? badges,
+    List<Badge>? myBadges,
+    List<PointRecord>? pointRecords,
+    int? pointsBalance,
+    List<Challenge>? challenges,
+    List<LeaderboardEntry>? familyLeaderboard,
+    List<LeaderboardEntry>? globalLeaderboard,
+    bool? isLoading,
+    String? error,
+  }) {
+    return RewardState(
+      badges: badges ?? this.badges,
+      myBadges: myBadges ?? this.myBadges,
+      pointRecords: pointRecords ?? this.pointRecords,
+      pointsBalance: pointsBalance ?? this.pointsBalance,
+      challenges: challenges ?? this.challenges,
+      familyLeaderboard: familyLeaderboard ?? this.familyLeaderboard,
+      globalLeaderboard: globalLeaderboard ?? this.globalLeaderboard,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
   }
 }
 
 /// 激励Provider
 final rewardProvider =
     StateNotifierProvider<RewardNotifier, RewardState>((ref) {
-  return RewardNotifier(ref);
+  final dataSource = ref.watch(rewardRemoteDataSourceProvider);
+  return RewardNotifier(dataSource);
 });
-
-/// 激励状态
-class RewardState {
-  final bool isLoading;
-  final int totalPoints;
-  final int badgeCount;
-  final int streakDays;
-  final String? newBadgeCode;
-  final String? error;
-
-  const RewardState({
-    this.isLoading = false,
-    this.totalPoints = 0,
-    this.badgeCount = 0,
-    this.streakDays = 0,
-    this.newBadgeCode,
-    this.error,
-  });
-
-  RewardState copyWith({
-    bool? isLoading,
-    int? totalPoints,
-    int? badgeCount,
-    int? streakDays,
-    String? newBadgeCode,
-    String? error,
-  }) {
-    return RewardState(
-      isLoading: isLoading ?? this.isLoading,
-      totalPoints: totalPoints ?? this.totalPoints,
-      badgeCount: badgeCount ?? this.badgeCount,
-      streakDays: streakDays ?? this.streakDays,
-      newBadgeCode: newBadgeCode,
-      error: error,
-    );
-  }
-}
 
 /// 激励Notifier
 class RewardNotifier extends StateNotifier<RewardState> {
-  final Ref _ref;
+  /// 激励远程数据源
+  final RewardRemoteDataSource _dataSource;
 
-  RewardNotifier(this._ref) : super(const RewardState());
+  RewardNotifier(this._dataSource) : super(const RewardState());
 
-  /// 加载用户奖励信息
-  Future<void> loadUserRewards() async {
-    state = state.copyWith(isLoading: true);
-
+  /// 加载勋章列表
+  /// 调用API获取所有勋章，可按分类筛选
+  Future<void> loadBadges({String? category}) async {
     try {
-      // TODO: 调用API获取用户奖励信息
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      state = state.copyWith(
-        isLoading: false,
-        totalPoints: 100,
-        badgeCount: 5,
-        streakDays: 7,
-      );
+      final response = await _dataSource.getBadges(category: category);
+      if (response.isSuccess && response.data != null) {
+        final badges = response.data!
+            .map((dto) => _convertBadgeDTO(dto))
+            .toList();
+        state = state.copyWith(badges: badges);
+      }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(error: e.toString());
     }
   }
 
-  /// 添加积分
-  Future<void> addPoints({
-    required int points,
-    required PointType type,
-    String? description,
+  /// 加载我的勋章
+  /// 调用API获取当前用户已获得的勋章
+  Future<void> loadMyBadges() async {
+    try {
+      final response = await _dataSource.getMyBadges();
+      if (response.isSuccess && response.data != null) {
+        final myBadges = response.data!
+            .map((dto) => _convertBadgeDTO(dto))
+            .toList();
+        state = state.copyWith(myBadges: myBadges);
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  /// 加载积分记录
+  /// 调用API获取积分变动记录，支持分页
+  Future<void> loadPointRecords({
+    int page = 1,
+    int pageSize = 20,
   }) async {
-    final newTotal = state.totalPoints + points;
-    state = state.copyWith(totalPoints: newTotal);
-
-    // 记录积分变动
-    final record = PointRecord(
-      id: 'point_${DateTime.now().millisecondsSinceEpoch}',
-      userId: 'current_user',
-      points: points,
-      type: type,
-      description: description,
-      balance: newTotal,
-      createdAt: DateTime.now(),
-    );
-
-    _ref.read(pointRecordsProvider.notifier).addPointRecord(record);
+    try {
+      final response = await _dataSource.getPoints(
+        page: page,
+        pageSize: pageSize,
+      );
+      if (response.isSuccess && response.data != null) {
+        final records = response.data!.list
+            .map((dto) => _convertPointRecordDTO(dto))
+            .toList();
+        state = state.copyWith(pointRecords: records);
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
   }
 
-  /// 检查并颁发新勋章
-  Future<Badge?> checkAndAwardBadge(String badgeCode) async {
-    // TODO: 调用API检查勋章条件并颁发
-    return null;
+  /// 加载积分余额
+  /// 调用API获取当前用户积分余额
+  Future<void> loadPointsBalance() async {
+    try {
+      final response = await _dataSource.getPointsBalance();
+      if (response.isSuccess && response.data != null) {
+        state = state.copyWith(pointsBalance: response.data!);
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
   }
 
-  /// 设置新勋章提示
-  void setNewBadge(String badgeCode) {
-    state = state.copyWith(
-      newBadgeCode: badgeCode,
-      badgeCount: state.badgeCount + 1,
-    );
+  /// 创建挑战
+  /// 调用API发起新挑战
+  Future<bool> createChallenge(CreateChallengeRequest req) async {
+    try {
+      final response = await _dataSource.createChallenge(req);
+      if (response.isSuccess && response.data != null) {
+        final challenge = _convertChallengeDTO(response.data!);
+        state = state.copyWith(challenges: [challenge, ...state.challenges]);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
   }
-
-  /// 清除新勋章提示
-  void clearNewBadge() {
-    state = state.copyWith(newBadgeCode: null);
-  }
-}
-
-/// 挑战列表Provider
-final challengesProvider =
-    StateNotifierProvider<ChallengesNotifier, List<Challenge>>((ref) {
-  return ChallengesNotifier();
-});
-
-/// 挑战Notifier
-class ChallengesNotifier extends StateNotifier<List<Challenge>> {
-  ChallengesNotifier() : super([]);
 
   /// 加载挑战列表
-  Future<void> loadChallenges(String userId) async {
+  /// 调用API获取挑战列表
+  Future<void> loadChallenges() async {
     try {
-      // TODO: 调用API获取挑战列表
-      state = [];
+      final response = await _dataSource.getChallenges();
+      if (response.isSuccess && response.data != null) {
+        final challenges = response.data!
+            .map((dto) => _convertChallengeDTO(dto))
+            .toList();
+        state = state.copyWith(challenges: challenges);
+      }
     } catch (e) {
-      state = [];
+      state = state.copyWith(error: e.toString());
     }
   }
 
-  /// 添加挑战
-  Future<void> addChallenge(Challenge challenge) async {
-    state = [challenge, ...state];
+  /// 接受挑战
+  /// 调用API接受指定挑战
+  Future<bool> acceptChallenge(String challengeId) async {
+    try {
+      final response = await _dataSource.acceptChallenge(challengeId);
+      if (response.isSuccess && response.data != null) {
+        final updatedChallenge = _convertChallengeDTO(response.data!);
+        final updatedChallenges = state.challenges.map((c) {
+          if (c.id == challengeId) return updatedChallenge;
+          return c;
+        }).toList();
+        state = state.copyWith(challenges: updatedChallenges);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
   }
 
-  /// 更新挑战状态
-  Future<void> updateChallenge(Challenge challenge) async {
-    state = state.map((c) => c.id == challenge.id ? challenge : c).toList();
+  /// 提交挑战得分
+  /// 调用API提交挑战成绩
+  Future<bool> submitChallengeScore(String challengeId, int score) async {
+    try {
+      final response =
+          await _dataSource.submitChallengeScore(challengeId, score);
+      if (response.isSuccess && response.data != null) {
+        final updatedChallenge = _convertChallengeDTO(response.data!);
+        final updatedChallenges = state.challenges.map((c) {
+          if (c.id == challengeId) return updatedChallenge;
+          return c;
+        }).toList();
+        state = state.copyWith(challenges: updatedChallenges);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  /// 加载家庭排行榜
+  /// 调用API获取家庭成员排行
+  Future<void> loadFamilyLeaderboard() async {
+    try {
+      final response = await _dataSource.getFamilyLeaderboard();
+      if (response.isSuccess && response.data != null) {
+        final entries = response.data!
+            .map((dto) => _convertLeaderboardDTO(dto))
+            .toList();
+        state = state.copyWith(familyLeaderboard: entries);
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  /// 加载全球排行榜
+  /// 调用API获取全球排行，可按运动类型筛选
+  Future<void> loadGlobalLeaderboard({String? exerciseType}) async {
+    try {
+      final response =
+          await _dataSource.getGlobalLeaderboard(exerciseType: exerciseType);
+      if (response.isSuccess && response.data != null) {
+        final entries = response.data!
+            .map((dto) => _convertLeaderboardDTO(dto))
+            .toList();
+        state = state.copyWith(globalLeaderboard: entries);
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  // ==================== 私有辅助方法 ====================
+
+  /// 将BadgeDTO转换为本地Badge实体
+  Badge _convertBadgeDTO(BadgeDTO dto) {
+    return Badge(
+      id: dto.id,
+      code: dto.code,
+      name: dto.name,
+      description: dto.description,
+      category: _parseBadgeCategory(dto.category),
+      icon: dto.icon.isNotEmpty ? dto.icon : null,
+      points: dto.points,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// 将PointRecordDTO转换为本地PointRecord实体
+  PointRecord _convertPointRecordDTO(PointRecordDTO dto) {
+    return PointRecord(
+      id: dto.id,
+      userId: dto.userId,
+      points: dto.points,
+      type: _parsePointType(dto.type),
+      sourceId: dto.sourceId,
+      sourceType: dto.sourceType,
+      description: dto.description,
+      balance: dto.balance,
+      createdAt: dto.createdAt.isNotEmpty
+          ? DateTime.parse(dto.createdAt)
+          : DateTime.now(),
+    );
+  }
+
+  /// 将ChallengeDTO转换为本地Challenge实体
+  Challenge _convertChallengeDTO(ChallengeDTO dto) {
+    return Challenge(
+      id: dto.id,
+      type: _parseChallengeType(dto.type),
+      initiatorId: dto.initiatorId,
+      acceptorId: dto.acceptorId ?? '',
+      exerciseType: dto.exerciseType,
+      targetValue: dto.targetValue,
+      initiatorScore: dto.initiatorScore,
+      acceptorScore: dto.acceptorScore,
+      winnerId: dto.winnerId,
+      status: _parseChallengeStatus(dto.status),
+      expiresAt: dto.expiresAt != null && dto.expiresAt!.isNotEmpty
+          ? DateTime.parse(dto.expiresAt!)
+          : DateTime.now().add(const Duration(days: 7)),
+      completedAt: dto.completedAt != null && dto.completedAt!.isNotEmpty
+          ? DateTime.parse(dto.completedAt!)
+          : null,
+      createdAt: dto.createdAt.isNotEmpty
+          ? DateTime.parse(dto.createdAt)
+          : DateTime.now(),
+    );
+  }
+
+  /// 将LeaderboardDTO转换为本地LeaderboardEntry实体
+  LeaderboardEntry _convertLeaderboardDTO(LeaderboardDTO dto) {
+    return LeaderboardEntry(
+      rank: dto.rank,
+      userId: dto.userId,
+      nickname: dto.nickname,
+      avatar: dto.avatar,
+      score: dto.score.round(), // double转int
+    );
+  }
+
+  /// 解析勋章分类字符串为枚举
+  BadgeCategory _parseBadgeCategory(String value) {
+    return BadgeCategory.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => BadgeCategory.milestone,
+    );
+  }
+
+  /// 解析积分类型字符串为枚举
+  PointType _parsePointType(String value) {
+    return PointType.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => PointType.exercise,
+    );
+  }
+
+  /// 解析挑战类型字符串为枚举
+  ChallengeType _parseChallengeType(String value) {
+    return ChallengeType.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => ChallengeType.async,
+    );
+  }
+
+  /// 解析挑战状态字符串为枚举
+  ChallengeStatus _parseChallengeStatus(String value) {
+    return ChallengeStatus.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => ChallengeStatus.pending,
+    );
   }
 }

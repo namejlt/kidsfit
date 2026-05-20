@@ -42,7 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       AppNavigator.goToParentHome(context);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(AppStrings.loginFailed),
           backgroundColor: AppColors.error,
         ),
@@ -110,7 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () {
                       // TODO: 跳转到忘记密码页面
                     },
-                    child: const Text(
+                    child: Text(
                       AppStrings.forgotPassword,
                       style: TextStyle(
                         color: AppColors.primary,
@@ -262,7 +262,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           AppStrings.haveAccountLogin,
           style: TextStyle(
             color: AppColors.textSecondary,

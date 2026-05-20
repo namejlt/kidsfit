@@ -31,7 +31,8 @@ class _TrainingPlanScreenState extends ConsumerState<TrainingPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final todayPlan = ref.watch(todayPlanProvider);
+    final exerciseState = ref.watch(exerciseProvider);
+    final todayPlan = exerciseState.todayPlan;
 
     return Scaffold(
       appBar: AppBar(

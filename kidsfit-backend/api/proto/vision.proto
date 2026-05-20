@@ -1,0 +1,26 @@
+syntax = "proto3";
+package vision;
+option go_package = "github.com/kidsfit/api/api/proto/vision";
+
+// VisionService 视力服务，提供视力记录查询和户外活动统计能力
+service VisionService {
+  // GetVisionRecord 根据ID获取视力记录
+  rpc GetVisionRecord(GetVisionRecordRequest) returns (GetVisionRecordResponse);
+  // GetOutdoorToday 获取今日户外活动统计
+  rpc GetOutdoorToday(GetOutdoorTodayRequest) returns (GetOutdoorTodayResponse);
+}
+
+// GetVisionRecordRequest 获取视力记录的请求
+message GetVisionRecordRequest { string id = 1; }
+
+// GetVisionRecordResponse 获取视力记录的响应
+message GetVisionRecordResponse { VisionRecordInfo record = 1; }
+
+// VisionRecordInfo 视力记录信息
+message VisionRecordInfo { string id = 1; string child_id = 2; string date = 3; string vision_status = 4; }
+
+// GetOutdoorTodayRequest 获取今日户外活动统计的请求
+message GetOutdoorTodayRequest { string user_id = 1; }
+
+// GetOutdoorTodayResponse 获取今日户外活动统计的响应
+message GetOutdoorTodayResponse { int32 duration_min = 1; bool is_target_met = 2; double target_progress = 3; }

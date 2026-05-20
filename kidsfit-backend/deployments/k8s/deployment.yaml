@@ -1,0 +1,604 @@
+# ============================================================
+# KidsFit 各微服务 Deployment 配置
+# 包含：user-svc、training-svc、vision-svc、reward-svc、gateway
+# 每个服务 2 个副本，配置资源限制、就绪探针和存活探针
+# ============================================================
+
+# -------------------- 用户服务 Deployment --------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: user-svc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kidsfit
+      service: user-svc
+  template:
+    metadata:
+      labels:
+        app: kidsfit
+        service: user-svc
+    spec:
+      containers:
+        - name: user-svc
+          image: kidsfit/user-svc:latest
+          ports:
+            - containerPort: 8001
+              protocol: TCP
+          # 环境变量：从 ConfigMap 和 Secret 注入配置
+          env:
+            - name: KIDSFIT_SERVER_PORT
+              value: "8001"
+            - name: KIDSFIT_SERVER_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: SERVER_MODE
+            - name: KIDSFIT_DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_HOST
+            - name: KIDSFIT_DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_PORT
+            - name: KIDSFIT_DATABASE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_USER
+            - name: KIDSFIT_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: DATABASE_PASSWORD
+            - name: KIDSFIT_DATABASE_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: USER_SVC_DATABASE_DBNAME
+            - name: KIDSFIT_DATABASE_SSLMODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_SSLMODE
+            - name: KIDSFIT_REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: REDIS_ADDR
+            - name: KIDSFIT_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: REDIS_PASSWORD
+            - name: KIDSFIT_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: JWT_SECRET
+            - name: KIDSFIT_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_LEVEL
+            - name: KIDSFIT_LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_FORMAT
+          # 资源限制：requests 为保底资源，limits 为上限
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          # 就绪探针：服务准备好接收流量时才标记为就绪
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # 存活探针：检测服务是否健康运行，失败则重启容器
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+---
+# -------------------- 训练服务 Deployment --------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: training-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: training-svc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kidsfit
+      service: training-svc
+  template:
+    metadata:
+      labels:
+        app: kidsfit
+        service: training-svc
+    spec:
+      containers:
+        - name: training-svc
+          image: kidsfit/training-svc:latest
+          ports:
+            - containerPort: 8002
+              protocol: TCP
+          env:
+            - name: KIDSFIT_SERVER_PORT
+              value: "8002"
+            - name: KIDSFIT_SERVER_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: SERVER_MODE
+            - name: KIDSFIT_DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_HOST
+            - name: KIDSFIT_DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_PORT
+            - name: KIDSFIT_DATABASE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_USER
+            - name: KIDSFIT_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: DATABASE_PASSWORD
+            - name: KIDSFIT_DATABASE_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: TRAINING_SVC_DATABASE_DBNAME
+            - name: KIDSFIT_DATABASE_SSLMODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_SSLMODE
+            - name: KIDSFIT_REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: REDIS_ADDR
+            - name: KIDSFIT_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: REDIS_PASSWORD
+            - name: KIDSFIT_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: JWT_SECRET
+            - name: KIDSFIT_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_LEVEL
+            - name: KIDSFIT_LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_FORMAT
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+---
+# -------------------- 视力服务 Deployment --------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vision-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: vision-svc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kidsfit
+      service: vision-svc
+  template:
+    metadata:
+      labels:
+        app: kidsfit
+        service: vision-svc
+    spec:
+      containers:
+        - name: vision-svc
+          image: kidsfit/vision-svc:latest
+          ports:
+            - containerPort: 8003
+              protocol: TCP
+          env:
+            - name: KIDSFIT_SERVER_PORT
+              value: "8003"
+            - name: KIDSFIT_SERVER_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: SERVER_MODE
+            - name: KIDSFIT_DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_HOST
+            - name: KIDSFIT_DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_PORT
+            - name: KIDSFIT_DATABASE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_USER
+            - name: KIDSFIT_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: DATABASE_PASSWORD
+            - name: KIDSFIT_DATABASE_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: VISION_SVC_DATABASE_DBNAME
+            - name: KIDSFIT_DATABASE_SSLMODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_SSLMODE
+            - name: KIDSFIT_REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: REDIS_ADDR
+            - name: KIDSFIT_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: REDIS_PASSWORD
+            - name: KIDSFIT_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: JWT_SECRET
+            - name: KIDSFIT_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_LEVEL
+            - name: KIDSFIT_LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_FORMAT
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+---
+# -------------------- 激励服务 Deployment --------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reward-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: reward-svc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kidsfit
+      service: reward-svc
+  template:
+    metadata:
+      labels:
+        app: kidsfit
+        service: reward-svc
+    spec:
+      containers:
+        - name: reward-svc
+          image: kidsfit/reward-svc:latest
+          ports:
+            - containerPort: 8004
+              protocol: TCP
+          env:
+            - name: KIDSFIT_SERVER_PORT
+              value: "8004"
+            - name: KIDSFIT_SERVER_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: SERVER_MODE
+            - name: KIDSFIT_DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_HOST
+            - name: KIDSFIT_DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_PORT
+            - name: KIDSFIT_DATABASE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_USER
+            - name: KIDSFIT_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: DATABASE_PASSWORD
+            - name: KIDSFIT_DATABASE_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: REWARD_SVC_DATABASE_DBNAME
+            - name: KIDSFIT_DATABASE_SSLMODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_SSLMODE
+            - name: KIDSFIT_REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: REDIS_ADDR
+            - name: KIDSFIT_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: REDIS_PASSWORD
+            - name: KIDSFIT_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: JWT_SECRET
+            - name: KIDSFIT_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_LEVEL
+            - name: KIDSFIT_LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_FORMAT
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+---
+# -------------------- API 网关 Deployment --------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kidsfit
+      service: gateway
+  template:
+    metadata:
+      labels:
+        app: kidsfit
+        service: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: kidsfit/gateway:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: KIDSFIT_SERVER_PORT
+              value: "8080"
+            - name: KIDSFIT_SERVER_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: SERVER_MODE
+            - name: KIDSFIT_DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_HOST
+            - name: KIDSFIT_DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_PORT
+            - name: KIDSFIT_DATABASE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_USER
+            - name: KIDSFIT_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: DATABASE_PASSWORD
+            - name: KIDSFIT_DATABASE_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: USER_SVC_DATABASE_DBNAME
+            - name: KIDSFIT_DATABASE_SSLMODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: DATABASE_SSLMODE
+            - name: KIDSFIT_REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: REDIS_ADDR
+            - name: KIDSFIT_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: REDIS_PASSWORD
+            - name: KIDSFIT_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kidsfit-secret
+                  key: JWT_SECRET
+            - name: KIDSFIT_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_LEVEL
+            - name: KIDSFIT_LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: LOG_FORMAT
+            # 网关路由目标地址
+            - name: GATEWAY_USER_SVC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: GATEWAY_USER_SVC_URL
+            - name: GATEWAY_TRAINING_SVC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: GATEWAY_TRAINING_SVC_URL
+            - name: GATEWAY_VISION_SVC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: GATEWAY_VISION_SVC_URL
+            - name: GATEWAY_REWARD_SVC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: kidsfit-config
+                  key: GATEWAY_REWARD_SVC_URL
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3

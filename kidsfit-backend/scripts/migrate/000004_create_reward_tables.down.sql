@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS challenges;
+DROP TABLE IF EXISTS point_records;
+DROP TABLE IF EXISTS user_badges;
+DROP TABLE IF EXISTS badges;

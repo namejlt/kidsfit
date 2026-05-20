@@ -6,6 +6,9 @@ class AppStrings {
   static const String appName = 'KidsFit小勇士';
   static const String appNameEn = 'KidsFit';
 
+  /// 应用描述
+  static const String appDescription = '让每个孩子爱上运动，健康成长';
+
   /// 登录注册
   static const String login = '登录';
   static const String register = '注册';
@@ -17,6 +20,12 @@ class AppStrings {
   static const String forgetPassword = '忘记密码？';
   static const String noAccount = '还没有账号？';
   static const String hasAccount = '已有账号？';
+  static const String forgotPassword = '忘记密码';
+  static const String haveAccountLogin = '已有账号？去登录';
+  static const String loginFailed = '登录失败，请重试';
+  static const String registerFailed = '注册失败，请重试';
+  static const String phoneFormatError = '手机号格式不正确';
+  static const String passwordFormatError = '密码格式不正确';
 
   /// 儿童信息
   static const String childName = '孩子姓名';
@@ -37,6 +46,7 @@ class AppStrings {
   static const String trainingPlan = '训练计划';
   static const String freeTraining = '自由训练';
   static const String startExercise = '开始运动';
+  static const String goExercise = '去运动';
   static const String pauseExercise = '暂停';
   static const String resumeExercise = '继续';
   static const String stopExercise = '结束';

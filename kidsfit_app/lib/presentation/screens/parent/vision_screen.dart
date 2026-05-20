@@ -56,7 +56,7 @@ class _VisionScreenState extends ConsumerState<VisionScreen> {
               const SizedBox(height: AppDimensions.spacingLG),
 
               // 视力档案
-              _buildVisionRecordsSection(visionState.visionRecords),
+              _buildVisionRecordsSection(visionState.records),
 
               const SizedBox(height: AppDimensions.spacingLG),
 

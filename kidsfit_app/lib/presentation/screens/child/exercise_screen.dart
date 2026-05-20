@@ -9,6 +9,7 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../domain/entities/exercise_record.dart';
 import '../../../services/exercise_controller.dart';
 import '../../../services/action_recognizer.dart';
+import '../../../services/pose_detection_service.dart';
 import '../../providers/exercise_provider.dart';
 
 /// 运动页面
@@ -118,7 +119,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
 
   /// 从骨骼姿态更新评分
   void _updateScoreFromPose(Pose pose) {
-    final landmarks = pose.landmarks.entries.map((entry) {
+    final landmarks = Map.fromEntries(pose.landmarks.entries.map((entry) {
       return MapEntry(
         entry.key,
         SkeletonPoint(
@@ -127,10 +128,10 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
           confidence: entry.value.likelihood,
         ),
       );
-    }).toMap();
+    }));
 
     final skeleton = SkeletonModel(
-      landmarks: landmarks.entries.map((e) => e.value).toList(),
+      landmarks: landmarks.values.toList(),
       timestamp: DateTime.now(),
       rotation: InputImageRotation.rotation0deg,
     );
@@ -228,7 +229,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
       }
     });
 
-    ref.read(exerciseProvider.notifier).startExercise();
+    ref.read(exerciseProvider.notifier).startExercise(_type);
   }
 
   @override
@@ -299,7 +300,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
       color: Colors.transparent,
       child: CustomPaint(
         painter: _SkeletonPainter(
-          landmarks: _poseDetector != null ? _currentScore : null,
+          score: _currentScore,
         ),
         size: Size.infinite,
       ),

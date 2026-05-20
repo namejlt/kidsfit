@@ -134,7 +134,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                       const SizedBox(height: 8),
                       // 应用描述
-                      const Text(
+                      Text(
                         AppStrings.appDescription,
                         style: TextStyle(
                           fontSize: 16,

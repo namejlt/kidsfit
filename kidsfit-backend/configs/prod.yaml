@@ -1,0 +1,25 @@
+server:
+  port: 8001
+  mode: release
+database:
+  host: ${KIDSFIT_DATABASE_HOST}
+  port: ${KIDSFIT_DATABASE_PORT}
+  user: ${KIDSFIT_DATABASE_USER}
+  password: ${KIDSFIT_DATABASE_PASSWORD}
+  dbname: ${KIDSFIT_DATABASE_DBNAME}
+  sslmode: require
+  max_open_conns: 50
+  max_idle_conns: 10
+  conn_timeout: 30
+redis:
+  addr: ${KIDSFIT_REDIS_ADDR}
+  password: ${KIDSFIT_REDIS_PASSWORD}
+  db: 0
+jwt:
+  secret: ${KIDSFIT_JWT_SECRET}
+  access_ttl: 7200
+  refresh_ttl: 604800
+  issuer: kidsfit
+log:
+  level: info
+  format: json

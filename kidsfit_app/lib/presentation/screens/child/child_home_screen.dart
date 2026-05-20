@@ -32,16 +32,19 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
   Future<void> _loadData() async {
     // 加载今日计划
     ref.read(exerciseProvider.notifier).loadTodayPlan();
-    // 加载积分信息
-    ref.read(rewardProvider.notifier).loadUserRewards();
+    // 加载积分和勋章信息
+    ref.read(rewardProvider.notifier).loadPointsBalance();
+    ref.read(rewardProvider.notifier).loadMyBadges();
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final todayPlan = ref.watch(todayPlanProvider);
-    final userBadges = ref.watch(userBadgesProvider);
-    final userPoints = ref.watch(userPointsProvider);
+    final exerciseState = ref.watch(exerciseProvider);
+    final rewardState = ref.watch(rewardProvider);
+    final todayPlan = exerciseState.todayPlan;
+    final userBadges = rewardState.myBadges;
+    final userPoints = rewardState.pointsBalance;
 
     return Scaffold(
       body: SafeArea(
@@ -331,7 +334,6 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                         AppColors.primary,
                       ),
                       strokeWidth: 6,
-                      radius: 30,
                     ),
                   ],
                 ),
@@ -353,7 +355,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text(AppStrings.goExercise),
+                      child: Text(AppStrings.goExercise),
                     ),
                   ),
                 ],

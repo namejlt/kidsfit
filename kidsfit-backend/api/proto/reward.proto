@@ -1,0 +1,34 @@
+syntax = "proto3";
+package reward;
+option go_package = "github.com/kidsfit/api/api/proto/reward";
+
+// RewardService 激励服务，提供积分查询、积分增减和徽章颁发能力
+service RewardService {
+  // GetPointsBalance 查询用户积分余额
+  rpc GetPointsBalance(GetPointsBalanceRequest) returns (GetPointsBalanceResponse);
+  // AddPoints 增加用户积分
+  rpc AddPoints(AddPointsRequest) returns (AddPointsResponse);
+  // CheckAndAwardBadges 检查并颁发徽章
+  rpc CheckAndAwardBadges(CheckAndAwardBadgesRequest) returns (CheckAndAwardBadgesResponse);
+}
+
+// GetPointsBalanceRequest 查询积分余额的请求
+message GetPointsBalanceRequest { string user_id = 1; }
+
+// GetPointsBalanceResponse 查询积分余额的响应
+message GetPointsBalanceResponse { int64 balance = 1; }
+
+// AddPointsRequest 增加积分的请求
+message AddPointsRequest { string user_id = 1; int32 points = 2; string type = 3; string description = 4; }
+
+// AddPointsResponse 增加积分的响应
+message AddPointsResponse { int64 balance = 1; repeated string badges_earned = 2; }
+
+// CheckAndAwardBadgesRequest 检查并颁发徽章的请求
+message CheckAndAwardBadgesRequest { string user_id = 1; string event_type = 2; }
+
+// CheckAndAwardBadgesResponse 检查并颁发徽章的响应
+message CheckAndAwardBadgesResponse { repeated BadgeInfo badges = 1; }
+
+// BadgeInfo 徽章信息
+message BadgeInfo { string id = 1; string code = 2; string name = 3; int32 points = 4; }

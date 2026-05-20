@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -35,7 +35,7 @@ class _AchievementScreenState extends ConsumerState<AchievementScreen>
   @override
   Widget build(BuildContext context) {
     final rewardState = ref.watch(rewardProvider);
-    final userBadges = ref.watch(userBadgesProvider);
+    final userBadges = rewardState.myBadges;
 
     return Scaffold(
       body: NestedScrollView(
@@ -91,18 +91,18 @@ class _AchievementScreenState extends ConsumerState<AchievementScreen>
             children: [
               _buildStatItem(
                 icon: Icons.star,
-                value: '${state.totalPoints}',
+                value: '${state.pointsBalance}',
                 label: '积分',
               ),
               _buildStatItem(
                 icon: Icons.emoji_events,
-                value: '${state.badgeCount}',
+                value: '${state.myBadges.length}',
                 label: '勋章',
               ),
               _buildStatItem(
                 icon: Icons.local_fire_department,
-                value: '${state.streakDays}',
-                label: '连续',
+                value: '${state.challenges.length}',
+                label: '挑战',
               ),
             ],
           ),
@@ -145,7 +145,7 @@ class _AchievementScreenState extends ConsumerState<AchievementScreen>
   }
 
   /// 构建勋章墙
-  Widget _buildBadgeWall(List<UserBadge> badges) {
+  Widget _buildBadgeWall(List<Badge> badges) {
     if (badges.isEmpty) {
       return Center(
         child: Column(
@@ -186,17 +186,14 @@ class _AchievementScreenState extends ConsumerState<AchievementScreen>
       ),
       itemCount: badges.length,
       itemBuilder: (context, index) {
-        final userBadge = badges[index];
-        return _buildBadgeItem(userBadge);
+        final badge = badges[index];
+        return _buildBadgeItem(badge);
       },
     );
   }
 
   /// 构建勋章项
-  Widget _buildBadgeItem(UserBadge userBadge) {
-    final badge = userBadge.badge;
-    final isNew = userBadge.isNew;
-
+  Widget _buildBadgeItem(Badge badge) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -207,51 +204,26 @@ class _AchievementScreenState extends ConsumerState<AchievementScreen>
             blurRadius: 10,
           ),
         ],
-        border: isNew
-            ? Border.all(color: AppColors.primary, width: 2)
-            : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Stack(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: _getBadgeColor(badge?.category).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  _getBadgeIcon(badge?.category),
-                  size: 32,
-                  color: _getBadgeColor(badge?.category),
-                ),
-              ),
-              if (isNew)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.star,
-                      size: 12,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-            ],
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: _getBadgeColor(badge.category).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _getBadgeIcon(badge.category),
+              size: 32,
+              color: _getBadgeColor(badge.category),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            badge?.name ?? '勋章',
+            badge.name,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,

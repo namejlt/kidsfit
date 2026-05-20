@@ -30,6 +30,9 @@ class AppColors {
   /// 中灰 - 次要文字
   static const Color textSecondary = Color(0xFF7F8C8D);
 
+  /// 浅灰 - 提示文字
+  static const Color textHint = Color(0xFFBDC3C7);
+
   /// 浅灰 - 背景、分隔线
   static const Color background = Color(0xFFECF0F1);
 

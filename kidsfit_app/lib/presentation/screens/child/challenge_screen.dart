@@ -65,7 +65,8 @@ class _ChallengeScreenState extends ConsumerState<ChallengeScreen>
 
   /// 构建亲子挑战Tab
   Widget _buildFamilyChallengeTab() {
-    final challenges = ref.watch(challengesProvider);
+    final rewardState = ref.watch(rewardProvider);
+    final challenges = rewardState.challenges;
 
     if (challenges.isEmpty) {
       return _buildEmptyState(

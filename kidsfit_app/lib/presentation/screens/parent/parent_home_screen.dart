@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,8 +44,10 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final todayPlan = ref.watch(todayPlanProvider);
-    final todayOutdoor = ref.watch(todayOutdoorProvider);
+    final exerciseState = ref.watch(exerciseProvider);
+    final visionState = ref.watch(visionProvider);
+    final todayPlan = exerciseState.todayPlan;
+    final todayOutdoor = visionState.todayOutdoor;
     final children = ref.watch(childrenListProvider);
 
     return Scaffold(
@@ -133,7 +137,7 @@ class _ParentHomeScreenState extends ConsumerState<ParentHomeScreen> {
                 isExpanded: true,
                 hint: const Text('选择儿童'),
                 items: children.map((child) {
-                  return DropdownMenuItem(
+                  return DropdownMenuItem<String>(
                     value: child.id,
                     child: Text('${child.nickname} (${child.age}岁)'),
                   );
@@ -724,16 +728,9 @@ class _RadarChartPainter extends CustomPainter {
     canvas.drawPath(path, paint);
   }
 
-  double cos(double radians) => radians.cos();
-  double sin(double radians) => radians.sin();
+  double cos(double radians) => math.cos(radians);
+  double sin(double radians) => math.sin(radians);
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
-extension on double {
-  double cos() => math.cos(this);
-  double sin() => math.sin(this);
-}
-
-import 'dart:math' as math;

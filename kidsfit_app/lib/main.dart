@@ -35,7 +35,7 @@ void setupErrorHandling() {
   };
 
   // 异步错误处理
-  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+  WidgetsBinding.instance.platformDispatcher.onError = (Object error, StackTrace stack) {
     debugPrint('Platform Error: $error');
     return true;
   };

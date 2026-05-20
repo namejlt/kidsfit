@@ -1,0 +1,292 @@
+# ============================================================
+# KidsFit 本地开发环境 Docker Compose 编排
+# 包含：PostgreSQL(4个数据库)、Redis、RabbitMQ、5个微服务
+# 使用方式: docker compose up -d
+# ============================================================
+
+version: "3.8"
+
+services:
+  # -------------------- 基础设施 --------------------
+
+  # PostgreSQL 数据库 - 为4个微服务提供独立的数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: kidsfit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kidsfit
+      POSTGRES_PASSWORD: kidsfit_dev
+      # 初始化时创建4个数据库，对应4个微服务
+      POSTGRES_MULTIPLE_DATABASES: kidsfit_users,kidsfit_training,kidsfit_vision,kidsfit_rewards
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # 初始化脚本：支持创建多个数据库
+      - ./init-postgres.sh:/docker-entrypoint-initdb.d/init-postgres.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kidsfit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - kidsfit-net
+
+  # Redis 缓存 - 会话管理、排行榜、分布式锁
+  redis:
+    image: redis:7-alpine
+    container_name: kidsfit-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass kidsfit_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "kidsfit_dev", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kidsfit-net
+
+  # RabbitMQ 消息队列 - 服务间异步通信
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: kidsfit-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: kidsfit
+      RABBITMQ_DEFAULT_PASS: kidsfit_dev
+    ports:
+      # AMQP 协议端口
+      - "5672:5672"
+      # 管理界面端口
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - kidsfit-net
+
+  # -------------------- 微服务 --------------------
+
+  # 用户服务 - 用户注册、认证、家庭管理
+  user-svc:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+      args:
+        SERVICE: user-svc
+    container_name: kidsfit-user-svc
+    restart: unless-stopped
+    environment:
+      # 服务端口
+      KIDSFIT_SERVER_PORT: 8001
+      KIDSFIT_SERVER_MODE: debug
+      # 数据库配置
+      KIDSFIT_DATABASE_HOST: postgres
+      KIDSFIT_DATABASE_PORT: 5432
+      KIDSFIT_DATABASE_USER: kidsfit
+      KIDSFIT_DATABASE_PASSWORD: kidsfit_dev
+      KIDSFIT_DATABASE_DBNAME: kidsfit_users
+      KIDSFIT_DATABASE_SSLMODE: disable
+      # Redis配置
+      KIDSFIT_REDIS_ADDR: redis:6379
+      KIDSFIT_REDIS_PASSWORD: kidsfit_dev
+      # JWT配置
+      KIDSFIT_JWT_SECRET: kidsfit_dev_secret_key_2024
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - kidsfit-net
+
+  # 训练服务 - 运动记录、训练计划、体能评估
+  training-svc:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+      args:
+        SERVICE: training-svc
+    container_name: kidsfit-training-svc
+    restart: unless-stopped
+    environment:
+      KIDSFIT_SERVER_PORT: 8002
+      KIDSFIT_SERVER_MODE: debug
+      KIDSFIT_DATABASE_HOST: postgres
+      KIDSFIT_DATABASE_PORT: 5432
+      KIDSFIT_DATABASE_USER: kidsfit
+      KIDSFIT_DATABASE_PASSWORD: kidsfit_dev
+      KIDSFIT_DATABASE_DBNAME: kidsfit_training
+      KIDSFIT_DATABASE_SSLMODE: disable
+      KIDSFIT_REDIS_ADDR: redis:6379
+      KIDSFIT_REDIS_PASSWORD: kidsfit_dev
+      KIDSFIT_JWT_SECRET: kidsfit_dev_secret_key_2024
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - kidsfit-net
+
+  # 视力服务 - 视力记录、户外活动、用眼提醒
+  vision-svc:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+      args:
+        SERVICE: vision-svc
+    container_name: kidsfit-vision-svc
+    restart: unless-stopped
+    environment:
+      KIDSFIT_SERVER_PORT: 8003
+      KIDSFIT_SERVER_MODE: debug
+      KIDSFIT_DATABASE_HOST: postgres
+      KIDSFIT_DATABASE_PORT: 5432
+      KIDSFIT_DATABASE_USER: kidsfit
+      KIDSFIT_DATABASE_PASSWORD: kidsfit_dev
+      KIDSFIT_DATABASE_DBNAME: kidsfit_vision
+      KIDSFIT_DATABASE_SSLMODE: disable
+      KIDSFIT_REDIS_ADDR: redis:6379
+      KIDSFIT_REDIS_PASSWORD: kidsfit_dev
+      KIDSFIT_JWT_SECRET: kidsfit_dev_secret_key_2024
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - kidsfit-net
+
+  # 激励服务 - 徽章、积分、挑战、排行榜
+  reward-svc:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+      args:
+        SERVICE: reward-svc
+    container_name: kidsfit-reward-svc
+    restart: unless-stopped
+    environment:
+      KIDSFIT_SERVER_PORT: 8004
+      KIDSFIT_SERVER_MODE: debug
+      KIDSFIT_DATABASE_HOST: postgres
+      KIDSFIT_DATABASE_PORT: 5432
+      KIDSFIT_DATABASE_USER: kidsfit
+      KIDSFIT_DATABASE_PASSWORD: kidsfit_dev
+      KIDSFIT_DATABASE_DBNAME: kidsfit_rewards
+      KIDSFIT_DATABASE_SSLMODE: disable
+      KIDSFIT_REDIS_ADDR: redis:6379
+      KIDSFIT_REDIS_PASSWORD: kidsfit_dev
+      KIDSFIT_JWT_SECRET: kidsfit_dev_secret_key_2024
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - kidsfit-net
+
+  # API网关 - 统一入口、路由转发、认证、限流
+  gateway:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+      args:
+        SERVICE: gateway
+    container_name: kidsfit-gateway
+    restart: unless-stopped
+    environment:
+      KIDSFIT_SERVER_PORT: 8080
+      KIDSFIT_SERVER_MODE: debug
+      KIDSFIT_DATABASE_HOST: postgres
+      KIDSFIT_DATABASE_PORT: 5432
+      KIDSFIT_DATABASE_USER: kidsfit
+      KIDSFIT_DATABASE_PASSWORD: kidsfit_dev
+      KIDSFIT_DATABASE_DBNAME: kidsfit_users
+      KIDSFIT_DATABASE_SSLMODE: disable
+      KIDSFIT_REDIS_ADDR: redis:6379
+      KIDSFIT_REDIS_PASSWORD: kidsfit_dev
+      KIDSFIT_JWT_SECRET: kidsfit_dev_secret_key_2024
+      # 网关路由目标地址（使用Docker内部服务名）
+      GATEWAY_USER_SVC_URL: http://user-svc:8001
+      GATEWAY_TRAINING_SVC_URL: http://training-svc:8002
+      GATEWAY_VISION_SVC_URL: http://vision-svc:8003
+      GATEWAY_REWARD_SVC_URL: http://reward-svc:8004
+    ports:
+      - "8080:8080"
+    depends_on:
+      user-svc:
+        condition: service_healthy
+      training-svc:
+        condition: service_healthy
+      vision-svc:
+        condition: service_healthy
+      reward-svc:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - kidsfit-net
+
+# -------------------- 数据卷 --------------------
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+# -------------------- 网络 --------------------
+networks:
+  kidsfit-net:
+    driver: bridge
+    name: kidsfit-network

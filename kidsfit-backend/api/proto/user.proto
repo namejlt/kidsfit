@@ -1,0 +1,34 @@
+syntax = "proto3";
+package user;
+option go_package = "github.com/kidsfit/api/api/proto/user";
+
+// UserService 用户服务，提供用户查询和令牌校验能力
+service UserService {
+  // GetUserByID 根据用户ID获取用户信息
+  rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse);
+  // GetChildrenByParentID 根据家长ID获取其关联的儿童列表
+  rpc GetChildrenByParentID(GetChildrenRequest) returns (GetChildrenResponse);
+  // ValidateToken 校验访问令牌的有效性
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+// GetUserByIDRequest 根据ID获取用户的请求
+message GetUserByIDRequest { string id = 1; }
+
+// GetUserByIDResponse 根据ID获取用户的响应
+message GetUserByIDResponse { UserInfo user = 1; }
+
+// UserInfo 用户信息
+message UserInfo { string id = 1; string type = 2; string nickname = 3; int32 age = 4; string avatar = 5; string phone = 6; string status = 7; }
+
+// GetChildrenRequest 获取儿童列表的请求
+message GetChildrenRequest { string parent_id = 1; }
+
+// GetChildrenResponse 获取儿童列表的响应
+message GetChildrenResponse { repeated UserInfo children = 1; }
+
+// ValidateTokenRequest 令牌校验请求
+message ValidateTokenRequest { string token = 1; }
+
+// ValidateTokenResponse 令牌校验响应
+message ValidateTokenResponse { bool valid = 1; string user_id = 2; string user_type = 3; string parent_id = 4; }

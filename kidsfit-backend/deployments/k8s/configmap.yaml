@@ -1,0 +1,78 @@
+# ============================================================
+# KidsFit ConfigMap 配置
+# 包含各微服务的公共配置和差异化配置
+# 敏感信息（密码、密钥）应使用 Secret 而非 ConfigMap
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kidsfit-config
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+data:
+  # -------------------- 服务器通用配置 --------------------
+  SERVER_MODE: "release"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+
+  # -------------------- 数据库配置 --------------------
+  # 注意：数据库密码应放在 Secret 中，此处仅配置非敏感连接参数
+  DATABASE_HOST: "postgres-svc.kidsfit.svc.cluster.local"
+  DATABASE_PORT: "5432"
+  DATABASE_USER: "kidsfit"
+  DATABASE_SSLMODE: "disable"
+  DATABASE_MAX_OPEN_CONNS: "50"
+  DATABASE_MAX_IDLE_CONNS: "10"
+  DATABASE_CONN_TIMEOUT: "30"
+
+  # 各服务使用的数据库名称
+  USER_SVC_DATABASE_DBNAME: "kidsfit_users"
+  TRAINING_SVC_DATABASE_DBNAME: "kidsfit_training"
+  VISION_SVC_DATABASE_DBNAME: "kidsfit_vision"
+  REWARD_SVC_DATABASE_DBNAME: "kidsfit_rewards"
+
+  # -------------------- Redis 配置 --------------------
+  REDIS_ADDR: "redis-svc.kidsfit.svc.cluster.local:6379"
+  REDIS_DB: "0"
+
+  # -------------------- JWT 配置 --------------------
+  # 注意：JWT Secret 应放在 Secret 中
+  JWT_ACCESS_TTL: "7200"
+  JWT_REFRESH_TTL: "604800"
+  JWT_ISSUER: "kidsfit"
+
+  # -------------------- RabbitMQ 配置 --------------------
+  RABBITMQ_HOST: "rabbitmq-svc.kidsfit.svc.cluster.local"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USER: "kidsfit"
+
+  # -------------------- 网关路由配置 --------------------
+  # 网关内部路由目标地址（使用 K8s Service 名称）
+  GATEWAY_USER_SVC_URL: "http://user-svc:8001"
+  GATEWAY_TRAINING_SVC_URL: "http://training-svc:8002"
+  GATEWAY_VISION_SVC_URL: "http://vision-svc:8003"
+  GATEWAY_REWARD_SVC_URL: "http://reward-svc:8004"
+
+---
+# ============================================================
+# KidsFit Secret 配置
+# 存放敏感信息，生产环境应使用外部密钥管理服务
+# ============================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kidsfit-secret
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+type: Opaque
+stringData:
+  # 数据库密码
+  DATABASE_PASSWORD: "kidsfit_prod_password"
+  # Redis 密码
+  REDIS_PASSWORD: "kidsfit_prod_redis_password"
+  # JWT 签名密钥
+  JWT_SECRET: "kidsfit_prod_jwt_secret_change_me"
+  # RabbitMQ 密码
+  RABBITMQ_PASSWORD: "kidsfit_prod_rabbitmq_password"

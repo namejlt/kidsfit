@@ -1,0 +1,110 @@
+# ============================================================
+# KidsFit 各微服务 Service 配置
+# 使用 ClusterIP 类型，服务仅在集群内部可访问
+# 外部流量通过 Ingress 进入 gateway 再路由到各服务
+# ============================================================
+
+# -------------------- 用户服务 Service --------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: user-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: kidsfit
+    service: user-svc
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+      protocol: TCP
+
+---
+# -------------------- 训练服务 Service --------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: training-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: training-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: kidsfit
+    service: training-svc
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002
+      protocol: TCP
+
+---
+# -------------------- 视力服务 Service --------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: vision-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: vision-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: kidsfit
+    service: vision-svc
+  ports:
+    - name: http
+      port: 8003
+      targetPort: 8003
+      protocol: TCP
+
+---
+# -------------------- 激励服务 Service --------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: reward-svc
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: reward-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: kidsfit
+    service: reward-svc
+  ports:
+    - name: http
+      port: 8004
+      targetPort: 8004
+      protocol: TCP
+
+---
+# -------------------- API 网关 Service --------------------
+# 网关作为集群内唯一的入口服务，Ingress 将流量转发至此
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+    service: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: kidsfit
+    service: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

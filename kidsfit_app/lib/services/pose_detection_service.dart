@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
 /// 骨骼关键点
@@ -154,7 +155,7 @@ class PoseDetectionService {
 
       if (poses.isNotEmpty) {
         final pose = poses.first;
-        final skeleton = _convertToSkeleton(pose, inputImage.image.rotation);
+        final skeleton = _convertToSkeleton(pose, InputImageRotation.rotation0deg);
         _skeletonController.add(skeleton);
       }
     } catch (e) {

@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS parent_settings;
+DROP TABLE IF EXISTS families;
+DROP TABLE IF EXISTS users;

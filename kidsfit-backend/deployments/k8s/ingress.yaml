@@ -1,0 +1,159 @@
+# ============================================================
+# KidsFit Ingress 配置
+# 路由规则与 gateway 路由一致，将外部流量按路径前缀转发到网关
+# 所有 /api/v1/* 请求统一进入 gateway，由 gateway 内部路由到各微服务
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kidsfit-ingress
+  namespace: kidsfit
+  labels:
+    app: kidsfit
+  annotations:
+    # 使用 Nginx Ingress Controller
+    kubernetes.io/ingress.class: nginx
+    # 启用 SSL 重定向，强制 HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # 代理连接超时
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    # 代理发送超时
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    # 代理读取超时
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    # 请求体大小限制（支持文件上传）
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  tls:
+    - hosts:
+        - api.kidsfit.com
+      secretName: kidsfit-tls-secret
+  rules:
+    # 主域名路由规则
+    - host: api.kidsfit.com
+      http:
+        paths:
+          # 用户服务路由：认证、用户、儿童、设置
+          - path: /api/v1/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/users
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/children
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/settings
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          # 训练服务路由：运动、计划、评估、统计
+          - path: /api/v1/exercises
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/plans
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/assessments
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/stats
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          # 视力服务路由：视力记录、视力、户外、提醒
+          - path: /api/v1/vision-records
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/vision
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/outdoor
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/reminders
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          # 激励服务路由：徽章、积分、挑战、排行榜
+          - path: /api/v1/badges
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/points
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/challenges
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          - path: /api/v1/leaderboard
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+          # 健康检查路由
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080

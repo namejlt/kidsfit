@@ -1,0 +1,11 @@
+# ============================================================
+# KidsFit 命名空间配置
+# 所有 KidsFit 相关资源将部署到此命名空间下
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kidsfit
+  labels:
+    app: kidsfit
+    environment: production
